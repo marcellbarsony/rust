@@ -24,3 +24,9 @@ supplied as the first command line argument.
 ```sh
 cargo run DANGER!
 ```
+
+The target of the software is set to `~/target` to avoid damaging the contents
+of the `home` directory.
+```sh
+~/target
+```
