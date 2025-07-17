@@ -1,4 +1,3 @@
-// Imports
 use std::env;
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -50,7 +49,7 @@ fn main() {
     path.push("target");
 
     // Discover files
-    let files = discover_dirs(&path).unwrap_or_else(|err| {
+    let files = discover_files(&path).unwrap_or_else(|err| {
         eprintln!(":: [-] :: {}", err);
         process::exit(1);
     });
@@ -100,8 +99,8 @@ fn main() {
     }
 }
 
-// Discover directories
-fn discover_dirs(path: &PathBuf) -> io::Result<Vec<PathBuf>> {
+// Discover files
+fn discover_files(path: &PathBuf) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     let entries = fs::read_dir(path)?;
 
@@ -110,7 +109,7 @@ fn discover_dirs(path: &PathBuf) -> io::Result<Vec<PathBuf>> {
         let path = entry.path();
 
         if path.is_dir() {
-            let mut sub_files = discover_dirs(&path)?;
+            let mut sub_files = discover_files(&path)?;
             files.append(&mut sub_files);
         } else {
             files.push(path);
