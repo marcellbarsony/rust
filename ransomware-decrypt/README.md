@@ -2,6 +2,9 @@
 
 [**Work in Progress**] - Experimental Rust software
 
+This ransomware decryptor implementation iterates over the encrypted files in
+the `target` directory and decrypts them with the encryption key.
+
 ## Disclaimer
 
 This repository contains malware samples intended solely for **educational and

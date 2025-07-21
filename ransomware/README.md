@@ -2,6 +2,10 @@
 
 [**Work in Progress**] - Experimental Rust software
 
+This ransomware implementation iterates over all files in the `target` directory
+and encrypts them with a random encryption key that is stored in
+`encryption.key` for future decryption.
+
 ## Disclaimer
 
 This repository contains malware samples intended solely for **educational and
@@ -27,7 +31,7 @@ supplied as the first command line argument.
 cargo run DANGER!
 ```
 
-### Target
+### Target directory
 
 The target is set to `~/home` to avoid damaging the contents of the `HOME`
 directory.
