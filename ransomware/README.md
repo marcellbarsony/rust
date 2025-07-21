@@ -33,7 +33,7 @@ The target is set to `~/home` to avoid damaging the contents of the `HOME`
 directory.
 ```sh
 # UNIX
-/home/{user}/.home
+/home/<user>/.home
 ```
 
 ```cmd

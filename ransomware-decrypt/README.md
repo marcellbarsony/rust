@@ -1,4 +1,4 @@
-# Rust
+# Ransomware decryptor
 
 [**Work in Progress**] - Experimental Rust software
 
@@ -21,13 +21,18 @@ implemented.
 
 ### Execution
 
+The crate can be executed by issuing `cargo run`.
+```sh
+cargo run
+```
+
 ### Target
 
 The target is set to `~/home` to avoid damaging the contents of the `HOME`
 directory.
 ```sh
 # UNIX
-/home/{user}/.home
+/home/<user>/.home
 ```
 
 ```cmd
