@@ -8,12 +8,12 @@ and encrypts them with a random encryption key that is stored in
 
 ## Disclaimer
 
-This repository contains malware samples intended solely for **educational and
-research purposes**. I am not responsible for any misuse or damage resulting
-from the use of this code. By accessing this repository, you agree to comply
-with all relevant laws and ethical standards.
+This repository contains a malware implementation intended solely for
+**educational and learning purposes**. I am not responsible for any misuse or
+damage resulting from the use of this code. By accessing this repository, you
+agree to comply with all relevant laws and ethical standards.
 
-**Do not use this software for malicious activities.**
+**Do not use this software for malicious activities!**
 
 ### Work in Progress
 

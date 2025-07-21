@@ -7,12 +7,12 @@ the `target` directory and decrypts them with the encryption key.
 
 ## Disclaimer
 
-This repository contains malware samples intended solely for **educational and
-research purposes**. I am not responsible for any misuse or damage resulting
-from the use of this code. By accessing this repository, you agree to comply
-with all relevant laws and ethical standards.
+This repository contains a malware implementation intended solely for
+**educational and learning purposes**. I am not responsible for any misuse or
+damage resulting from the use of this code. By accessing this repository, you
+agree to comply with all relevant laws and ethical standards.
 
-**Do not use this software for malicious activities.**
+**Do not use this software for malicious activities!**
 
 ### Work in Progress
 
@@ -29,9 +29,9 @@ The crate can be executed by issuing `cargo run`.
 cargo run
 ```
 
-### Target
+### Target directory
 
-The target is set to `~/home` to avoid damaging the contents of the `HOME`
+The target is set to `~/.home` to avoid damaging the contents of the `HOME`
 directory.
 ```sh
 # UNIX
