@@ -1,6 +1,6 @@
 use std::env;
-use std::fs;
-use std::io;
+use std::fs::{self, File};
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process;
 
@@ -8,25 +8,23 @@ use aes_gcm::Nonce;
 use aes_gcm::aead::generic_array::GenericArray;
 use aes_gcm::{
     Aes256Gcm,
-    aead::{Aead, KeyInit, OsRng},
+    aead::{Aead, KeyInit},
 };
-use pbkdf2::password_hash::SaltString;
 
 fn main() {
-    // Generate salt
-    let salt = SaltString::generate(&mut OsRng);
-    println!("salt {:?}", salt);
-
     // Get `HOME` directory
     let mut path = if cfg!(target_os = "windows") {
         env::var_os("USERPROFILE").map(PathBuf::from)
     } else {
         env::var_os("HOME").map(PathBuf::from)
     }
-    .expect(":: [-] :: Home directory");
+    .unwrap_or_else(|| {
+        eprintln!(":: [-] :: Could not determine home directory");
+        std::process::exit(1);
+    });
 
-    // Push `target/` directory to avoid harm
-    path.push("target");
+    // Append `.home/` (set to avoid encrypting `HOME`)
+    path.push(".home");
 
     // Discover files
     let files = discover_files(&path).unwrap_or_else(|err| {
@@ -34,14 +32,12 @@ fn main() {
         process::exit(1);
     });
 
-    // Encryption key file
+    // Read encryption key file
     let key = fs::read("encryption.key").expect(":: [-] :: Cannot read encryption key file");
 
     // Iterate over files
     for file in files {
-        println!(":: [i] :: File :: {:?}", file);
-
-        // Read file
+        // Read file contents
         let encrypted_data = match fs::read(&file) {
             Ok(data) => data,
             Err(err) => {
@@ -50,7 +46,7 @@ fn main() {
             }
         };
 
-        // Retrieve nonce bytes & ciphertext bytes
+        // Retrieve nonce & ciphertext bytes
         let nonce_bytes = &encrypted_data[0..12];
         let ciphertext = &encrypted_data[12..];
 
@@ -60,17 +56,29 @@ fn main() {
         // Convert key to GenericArray
         let key = GenericArray::from_slice(&key);
 
-        // Aes256Gcm - Initialize instance
+        // Initialize instance (Aes256Gcm)
         let cipher = Aes256Gcm::new(key);
 
         // Decrypt ciphertext
         let plain_text = cipher
             .decrypt(nonce, ciphertext)
-            .expect(":: [-] :: Failed to decrypt");
-        println!(
-            ":: Plain text :: {:?}",
-            String::from_utf8_lossy(&plain_text)
-        );
+            .expect(":: [-] :: Decrypt ciphertext");
+
+        // Create plain text file
+        let mut out_path = file.clone();
+        out_path.set_extension("");
+
+        // Rename original file
+        fs::rename(&file, &out_path).expect(":: [-] :: Rename original file");
+
+        // Overwrite renamed file
+        let mut file = File::create(&out_path).expect(":: [-] :: Create file");
+
+        // Write `plain text` to file
+        file.write_all(&plain_text)
+            .expect(":: [-] :: Write plain text");
+
+        println!(":: [+] :: Decrypted file ::  {:?}", out_path);
     }
 }
 

