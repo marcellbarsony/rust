@@ -4,5 +4,8 @@ ransomware/target
 # Ransomware-decrypt
 ransomware-decrypt/target
 
-# Web-server
+# Web server
+web-server/target
+
+# Reverse shell
 web-server/target
