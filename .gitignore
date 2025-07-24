@@ -8,4 +8,4 @@ ransomware-decrypt/target
 web-server/target
 
 # Reverse shell
-web-server/target
+reverse-shell/target
