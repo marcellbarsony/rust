@@ -9,3 +9,6 @@ web-server/target
 
 # Reverse shell
 reverse-shell/target
+
+# Reverse shell client
+reverse-shell-client/target

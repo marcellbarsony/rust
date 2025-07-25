@@ -1,4 +1,4 @@
-# Reverse shell
+# Reverse shell client
 
 [**Work in Progress**] - Experimental Rust software
 
